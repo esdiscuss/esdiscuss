@@ -790,8 +790,8 @@ has proven to be sufficient to my needs for several months.
 I would be interested if others could share their experience if they had 
 a different way of using promises.
 
-# the Q API
-## A Q Deferred is a {promise, reject, resolve} object. Only the 
+### the Q API
+#### A Q Deferred is a {promise, reject, resolve} object. Only the 
 deferred holder can resolve the promise (and not the promise holder), 
 addressing the security issue that's been raised on the list.
 You create a Deferred instance by calling Q.defer()
@@ -812,7 +812,7 @@ something like (and that's probably also how things are done internally):
          return def.promise;
      }
 
-## A Q Promise is a {then, fail} object.
+#### A Q Promise is a {then, fail} object.
 Given the previous code, it's possible to do:
 
      var someData1P = query(q1);
@@ -892,7 +892,7 @@ style and aestetics so I won't be fighting to death to have both
 separated, but it feels like noticeable enough to be noted.
 
 
-## Q.all
+#### Q.all
 My favorite feature is the Q.all function. Q.all accepts an array of 
 promises and returns a promise which will be fulfilled when all promises 
 are. The resolution values are the different promises resolution values:
@@ -923,7 +923,7 @@ Q.all covered the 80% case (well, actually 100%) for me.
 
 
 
-# Debugging
+### Debugging
 It's been said in other messages, one part where Q promises fell short 
 was debugging. With thrown errors, if you uncatch one, your 
 devtools/console will tell you. To my experience, with the Q library, if 
@@ -956,7 +956,7 @@ I don't know to which extent this is workable and useful. I'm confident
 it could be enough, but only user-research could really say.
 
 
-# Promises and progress
+### Promises and progress
 
 Since I started talking about promises, I've had discussions with people 
 and one thing that came about a couple of times was the idea of 
@@ -1005,7 +1005,7 @@ it because of cost/benefit.
 
 
 >
-> # the Q API
+> ### the Q API
 > ## A Q Deferred is a {promise, reject, resolve} object. Only the deferred
 > holder can resolve the promise (and not the promise holder), addressing the
 > security issue that's been raised on the list.
@@ -1032,7 +1032,7 @@ I had lots of code like that.
 
 
 >
-> ## A Q Promise is a {then, fail} object.
+> #### A Q Promise is a {then, fail} object.
 > Given the previous code, it's possible to do:
 >
 >     var someData1P = query(q1);
@@ -1052,7 +1052,7 @@ Note these callbacks: promise based code is very callback-y.
 
 >
 >
-> ## Q.all
+> #### Q.all
 > My favorite feature is the Q.all function. Q.all accepts an array of
 > promises and returns a promise which will be fulfilled when all promises
 > are.
@@ -1073,7 +1073,7 @@ feature is only needed a few times in an application.
 
 
 >
-> # Debugging
+> ### Debugging
 > It's been said in other messages, one part where Q promises fell short was
 > debugging.
 
@@ -1094,11 +1094,6 @@ the values across breakpoints.
 
 I agree that Q is exceptionally well done, so much so that I came away much
 less enthusiastic about the promise concept overall.
-
-jjb
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121109/61b74ed8/attachment-0001.html>
 
 ## Mark S. Miller
 
@@ -1141,117 +1136,6 @@ http://code.google.com/p/es-lab/downloads/detail?name=friam.pdf#makechanges>)
 for a particularly elegant example using promises. I would be curious how
 well you could express this without promises.
 
-
-
->
->
->>
->> # the Q API
->> ## A Q Deferred is a {promise, reject, resolve} object. Only the deferred
->> holder can resolve the promise (and not the promise holder), addressing the
->> security issue that's been raised on the list.
->> You create a Deferred instance by calling Q.defer()
->>
->> Typically, when trying to promise-ify async APIs, you end up doing
->> something like (and that's probably also how things are done internally):
->>
->>     function query(myQuery){
->>         var def = Q.defer();
->>
->>         db.query(myQuery, function(err, data){
->>             if(err)
->>                 def.reject(err)
->>             else
->>                 def.resolve(data)
->>         })
->>
->>         return def.promise;
->>     }
->>
->
-> I had lots of code like that.
->
->
->>
->> ## A Q Promise is a {then, fail} object.
->> Given the previous code, it's possible to do:
->>
->>     var someData1P = query(q1);
->>     someData1P.then(function(data)**{
->>         // do something with data
->>     });
->>     someData1P.fail(function(**error){
->>         // handle the error
->>     });
->>
->> Both then and fail return another promise for the result of the callback
->>
->
-> Note these callbacks: promise based code is very callback-y.
->
->  ....
->
->>
->>
->> ## Q.all
->> My favorite feature is the Q.all function. Q.all accepts an array of
->> promises and returns a promise which will be fulfilled when all promises
->> are.
->
-> ...
->
->
->
->> I used this extensively and it's been extremely helpful. Personally, to
->> synchronize different async operations, I've never read code more elegant
->> than what Q.all offers. I'm interested in hearing what other's experience
->> is on that point.
->>
->
-> I agree that this is the most valuable feature and the one that got me to
-> try Q and stick with it for a while. However, in my experience  this
-> feature is only needed a few times in an application.
->
->
->>
->> # Debugging
->> It's been said in other messages, one part where Q promises fell short
->> was debugging.
->
-> ...
->>
->
-> I suppose if we stick to console logging I could agree with this very rosy
-> description. But Q makes breakpoint debugging essentially useless: the call
-> stack is gone and you have to break much more often then try to correlate
-> the values across breakpoints.
->
->
->> I think I've shared pretty much all my experience and thoughts on the
->> topic. I feel that overall, the Q API is really good to work with promises
->> and my opinion is that a standard promise feature should have the same
->> features (I however don't care about the exact names of methods).
->
->
-> I agree that Q is exceptionally well done, so much so that I came away
-> much less enthusiastic about the promise concept overall.
->
-> jjb
->
-> _______________________________________________
-> es-discuss mailing list
-> es-discuss at mozilla.org
-> https://mail.mozilla.org/listinfo/es-discuss
->
->
-
-
--- 
-    Cheers,
-    --MarkM
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121109/99e73082/attachment.html>
 
 ## John J Barton
 
@@ -1698,7 +1582,7 @@ worked well.
 On Fri, Nov 9, 2012 at 4:33 AM, David Bruant <bruant.d at gmail.com> wrote:
 
 > [...]
-> ## Q.all
+> #### Q.all
 > My favorite feature is the Q.all function. Q.all accepts an array of
 > promises and returns a promise which will be fulfilled when all promises
 > are. The resolution values are the different promises resolution values:
@@ -1727,7 +1611,7 @@ Q today, for obvious reasons, is pre-ES6. The var-args form means that a
 Q.all on a computed list would require usage of .apply, which is much
 uglier than the extra square brackets for the non-computed case.
 
-# Promises and progress
+### Promises and progress
 >
 > Since I started talking about promises, I've had discussions with people
 > and one thing that came about a couple of times was the idea of "progress"
@@ -1744,14 +1628,6 @@ History aside, I prefer "broken" to "rejected". (E used "broken") But the
 verb form of "broken" is "break" which conflicts with a keyword. For this
 reason, Tyler chose the verb "reject" for his original Q library, and this
 choice stuck. This suggests that we name the state "rejected".
-
-
--- 
-    Cheers,
-    --MarkM
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121109/408eb8b4/attachment.html>
 
 ## Domenic Denicola
 
@@ -1811,11 +1687,6 @@ Nice: +1
 
 +1 here as well.
 
-- Kevin
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121109/ce8a681e/attachment.html>
-
 ## Kevin Smith
 
 [_Fri Nov 9 13:33:41 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026262.html)
@@ -1849,11 +1720,6 @@ this awkward to express because the "fail" callback is assigned to the
 
 I think arrow functions make the two-arg form considerably more
 aesthetically pleasing.
-
-- Kevin
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121109/1369adc9/attachment.html>
 
 ## Brendan Eich
 
@@ -1957,11 +1823,6 @@ Provided that fail provides the implicit success handler `val => val`, I
 think that's correct.  Question:  is one-arg `then` + `fail` equally as
 powerful as two-arg then?  Proof?
 
-- Kevin
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121110/4812d4dc/attachment-0001.html>
-
 ## Mark S. Miller
 
 [_Sat Nov 10 15:46:07 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026270.html)
@@ -2004,18 +1865,6 @@ On Fri, Nov 9, 2012 at 8:33 AM, Mark S. Miller <erights at google.com> wrote:
 > is different than either of the one-arg chainings.
 >
 
-
-
->
-
-
--- 
-    Cheers,
-    --MarkM
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121110/f7d2d6d3/attachment.html>
-
 ## Kevin Smith
 
 [_Sun Nov 11 05:44:12 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026271.html)
@@ -2053,11 +1902,6 @@ onSuccess(val));
 But this involves the creation of an extra (unnecessary) node in the graph.
  And it's obtuse.  I still think the two-arg form makes the most sense as a
 base-level "then" API.
-
-- Kevin
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121111/a4a8eaa5/attachment.html>
 
 ## David Bruant
 
@@ -2110,11 +1954,6 @@ time to wait for network or a user input or a timeout.
 If the second argument is optional, it's possible to have both one-arg 
 and two-arg styles in the same API.
 What do people think about this idea?
-
-David
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121113/bc22ad6d/attachment.html>
 
 ## Kevin Smith
 
@@ -2171,11 +2010,6 @@ CommonJS mailing list days, there was contention between Promises/A
 (thenables) and Promises/B (basically Q).  But they really are
 complementary:  futures and promises.
 
-- Kevin
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121114/05b25e2d/attachment-0001.html>
-
 ## Mark S. Miller
 
 [_Mon Nov 12 07:43:29 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026282.html)
@@ -2206,14 +2040,6 @@ than here. Since "when" has no other advocates, this terminology issue is
 over.
 
 Updates to code coming when I have time.
-
-
--- 
-    Cheers,
-    --MarkM
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121112/a8c16a9f/attachment.html>
 
 ## Andreas Rossberg
 
@@ -2362,11 +2188,6 @@ Sounds good to me. I'll pull my "non-native English speaker" card here,
 because I don't understand the difference between your terminology and 
 the one I chose.
 
-David
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121113/5a64c2f2/attachment-0001.html>
-
 ## Leo Meyerovich
 
 [_Sun Nov 11 13:02:37 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026272.html)
@@ -2507,11 +2328,6 @@ Initial implementation here: https://github.com/jscloud/Promise
 
 I think it's important to separate "Promise" from "Future".  Back in the CommonJS mailing list days, there was contention between Promises/A (thenables) and Promises/B (basically Q).  But they really are complementary:  futures and promises.
 
-- Kevin
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121114/c2ce0a8d/attachment.html>
-
 ## Kevin Smith
 
 [_Wed Nov 14 08:41:52 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026346.html)
@@ -2526,11 +2342,6 @@ costs later.  I think migration costs are in general overstated in these
 matters (I made that mistake a couple of years ago with modules).
 
 Plus, "Deferred", seriously?  It's not even a noun.   : )
-
-- Kevin
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121114/7635dbab/attachment.html>
 
 ## Domenic Denicola
 
@@ -2556,11 +2367,6 @@ Ouch : )
 
 Names are important.  Especially when it comes to something as potentially
 confusing as promises and futures.
-
-- Kevin
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121114/be0d6195/attachment-0001.html>
 
 ## Mark S. Miller
 
@@ -2609,21 +2415,6 @@ manner, so I'd classify it as #4. Let's not repeat Scala's mistake.
 
 [1] Off the top of my head now, without actually going back to the history.
 
-
-
->
-> - Kevin
->
-
-
-
--- 
-    Cheers,
-    --MarkM
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121114/b57d8178/attachment.html>
-
 ## Andreas Rossberg
 
 [_Wed Nov 14 09:57:58 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026356.html)
@@ -2660,11 +2451,6 @@ objects and so-on.
 Also, something like a DOMFuture can be spec'd independently from any
 particular (and more fully featured) promise spec.
 
-- Kevin
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121114/6759d9be/attachment.html>
-
 ## Tom Van Cutsem
 
 [_Wed Nov 14 11:37:33 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026360.html)
@@ -2693,12 +2479,6 @@ In my experience, the term "promise" is much more associated with
 non-blocking synchronization through .then or .when callback chaining
 (although ironically the name derives from Argus, which featured blocking
 promises. Argh! :-)
-
-Cheers,
-Tom
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121114/e71f5ac7/attachment.html>
 
 ## Mark S. Miller
 
@@ -2737,23 +2517,6 @@ http://en.wikipedia.org/wiki/Futures_and_promises#Promise_pipelining> was
 invented, and this is a key feature of our distributed promises via
 .send/.post. In this way, the Argus promises are the closest to ours.
 
-
-
-
->
-> Cheers,
-> Tom
->
-
-
-
--- 
-    Cheers,
-    --MarkM
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121114/9bab2029/attachment.html>
-
 ## Rick Waldron
 
 [_Wed Nov 14 09:28:29 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026353.html)
@@ -2788,81 +2551,6 @@ which matches the latter.
 
 I'd be interested in seeing usership data for libraries using this existing
 terminology.
-
-
-Rick
-
-
-
->  *From:* Kevin Smith
-> *Sent:* November 14, 2012 11:23
-> *To:* David Bruant
-> *CC:* Mark S. Miller, EcmaScript
-> *Subject:* Re: Promises
->
->
->   If the second argument is optional, it's possible to have both one-arg
->> and two-arg styles in the same API.
->> What do people think about this idea?
->>
->
->  Maybe - minimalism served the class proposal quite well.  It might be a
-> good strategy here, too.
->
->  Here's what I'm thinking:
->
->      // Creates a new promise
->     let promise = new Promise();
->
->     // Resolves the promise (ala Q)
->     promise.resolve(value);
->
->     // Rejects the promise (ala Q)
->     promise.reject(value);
->
->     // A handle to the eventual value of the promise
->     promise.future;
->
->     // The then method (ala Promises/A+)
->     promise.future.then(val => {
->
->         // Success handler
->
->     }, err => {
->
->         // Error handler
->     });
->
->     // Returns a future for the value
->     Promise.when(value);
->
->     // Returns a rejected future with the specified error
->     Promise.reject(error);
->
->     // Returns a future for every eventual value in the list
->     Promise.whenAll(list);
->
->     // Returns a future for the first resolved future in the list
->     Promise.whenAny(list);
->
->  Initial implementation here: https://github.com/jscloud/Promise
->
->  I think it's important to separate "Promise" from "Future".  Back in the
-> CommonJS mailing list days, there was contention between Promises/A
-> (thenables) and Promises/B (basically Q).  But they really are
-> complementary:  futures and promises.
->
->  - Kevin
->
-> _______________________________________________
-> es-discuss mailing list
-> es-discuss at mozilla.org
-> https://mail.mozilla.org/listinfo/es-discuss
->
->
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121114/2852c0ce/attachment.html>
 
 ## Mark S. Miller
 
@@ -2903,14 +2591,6 @@ either.
 For "Promise" as a noun, if I have a promise from you, I do not have the
 ability to resolve the promise -- that ability is your's. So the ability of
 resolve the promise is clearly distinct from having the promise.
-
-
--- 
-    Cheers,
-    --MarkM
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121114/0ab51089/attachment.html>
 
 ## Rick Waldron
 
@@ -2968,17 +2648,3 @@ https://docs.google.com/document/d/10OeEwqEuEPyDVRU9VXemxi3kc7ba_pugxHLD2BSrG_k/
 Originally I had worded the phrase something like "Make a Promise...";
 regardless, this perspective clearly (and correctly) illustrates the
 intention.
-
-Rick
-
-
-
->
-> --
->     Cheers,
->     --MarkM
->
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121114/f509324f/attachment.html>
-
