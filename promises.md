@@ -225,7 +225,7 @@ Agreed. That would also offer the possibility to support promises in syntax. In 
       ...;
     }
 
-(read as "let x from promise"), desugaring into
+(read as `let x from promise`), desugaring into
 
     { ...;
       promise.then( (x) => { ...; };
@@ -233,7 +233,7 @@ Agreed. That would also offer the possibility to support promises in syntax. In 
 
 Essentially, this is an even shallower continuation than generators (only the remaining statements in the current statement list), but it is already sufficient to avoid callback nesting issues in async code. It also suffices to implement generators, but for syntax. 
 
-By relying on nothing but a '.then' method, this isn't tied to promises in the narrow sense, but provides a reusable building block for other control abstractions (to begin with, abstracting away the default error handling in some APIs).
+By relying on nothing but a `.then` method, this isn't tied to promises in the narrow sense, but provides a reusable building block for other control abstractions (to begin with, abstracting away the default error handling in some APIs).
 
 ## Axel Rauschmayer
 
@@ -589,35 +589,24 @@ to cover as much ground as I can here. Response inline:
 
 
 
-On Tue, Nov 6, 2012 at 6:47 PM, David Bruant <bruant.d at gmail.com> wrote:
+On Tue, Nov 6, 2012 at 6:47 PM, David Bruant wrote:
 
-> Hi,
+> In a [post](http://lists.w3.org/Archives/Public/public-script-coord/2012OctDec/0122.html) to public-script-coord yesterday, Alex Russel wrote the following:
 >
-> In a post to public-script-coord yesterday, Alex Russel wrote the
-> following [1]:
-> "[Web]IDL *is handy. *More to the point, it's the language of the specs we
-> have now, and the default mode for writing new ones is "copy/paste some IDL
-> from another spec that looks close to what I need and then hack away until
-> it's close". This M.O. is exacerbated by the reality that most of the folks
-> writing these specs are C++ hackers, not JS developers. For many, WebIDL
-> becomes a safety blanket that keeps them from having to ever think about
-> the operational JS semantics or be confronted with the mismatches."
->
-> I wasn't aware of this and then read through about a dozen WebAPIs [2]
-> between yesterday and today and... discovered it's the case. In my opinion,
-> one of the most absurd example is the DOMRequest thing which looks like:
-> {
->    readonly attribute DOMString readyState; // "processing" or "done"
->    readonly attribute DOMError? error;
->    attribute EventListener      onsuccess;
->    attribute EventListener      onerror;
->    attribute readonly any?      result;
->  };
->
-> Read it carefully and you'll realize this is actually a promise... but it
-> has this absurd thing that it has to have both an error and result field
-> while only one is actually field at any given point.
->
+>> [Web]IDL is handy. More to the point, it's the language of the specs we have now, and the default mode for writing new ones is "copy/paste some IDL from another spec that looks close to what I need and then hack away until it's close". This M.O. is exacerbated by the reality that most of the folks writing these specs are C++ hackers, not JS developers. For many, WebIDL becomes a safety blanket that keeps them from having to ever think about the operational JS semantics or be confronted with the mismatches.
+> 
+> I wasn't aware of this and then read through about a [dozen WebAPIs](https://wiki.mozilla.org/WebAPI#APIs) between yesterday and today and... discovered it's the case. In my opinion, one of the most absurd example is the DOMRequest thing which looks like:
+>```
+>{
+>  readonly attribute DOMString readyState; // "processing" or "done"
+>  readonly attribute DOMError? error;
+>  attribute EventListener      onsuccess;
+>  attribute EventListener      onerror;
+>  attribute readonly any?      result;
+>};
+>```
+
+>Read it carefully and you'll realize this is actually a promise... but it has this absurd thing that it has to have both an error and result field while only one is actually field at any given point.
 
 There are absurdities like this all over DOM for want of promises. A short
 list must include:
@@ -632,20 +621,15 @@ I'm sure I'm missing some. I'm also aware of new APIs that could be re-cast
 in terms of Promises/Futures/whatevs to good effect.
 
 
-> Also, these APIs and JavaScript as it they are won't support promise
-> chainability and the excellent error forwarding that comes with it
-> off-the-shelf. Also, the lack of a built-in Q.all really doesn't promote
-> good code when it comes to event synchronization.
-> Oh yes, of course, you can always build a promise library on top of the
-> current APIs, blablabla... and waste battery with these libraries [3].
+> Also, these APIs and JavaScript as it they are won't support promise chainability and the excellent error forwarding that comes with it off-the-shelf. Also, the lack of a built-in Q.all really doesn't promote good code when it comes to event synchronization. Oh yes, of course, you can always build a promise library on top of the current APIs, blablabla... and waste battery with [these libraries](http://assets.en.oreilly.com/1/event/79/Who%20Killed%20My%20Battery_%20Analyzing%20Mobile%20Browser%20Energy%20Consumption%20Presentation.pdf).
 >
 > I'm coming with the following plan:
-> 1) get promises in ECMAScript
-> 2) get WebIDL to support ECMAScript promises
-> 3) get browser APIs to use WebIDL promises
->
+> 
+> 1. get promises in ECMAScript
+> 2. get WebIDL to support ECMAScript promises
+> 3. get browser APIs to use WebIDL promises
 
->From a "doability" perspective, I think this is backwards. Browser vendors
+From a "doability" perspective, I think this is backwards. Browser vendors
 are more likely to add ad-hoc APIs, and the large problem of DOM design is
 that Promises aren't in the WebIDL "toolchest". Further, this group is even
 more gunshy than many W3C WGs to make progress in important areas for fear
@@ -666,44 +650,14 @@ In an ideal world we'd go your route (as we would have with
 Object.observe() vs. Mutation Observers), but TC39 isn't known for adding
 API quickly, no matter how popular or well-argued the case.
 
-About the first step, there is a strawman [4] that contains promises and it
-> requires to define the event loop, so that's probably too much for ES6.
-> Yet, it doesn't prevent to agree on a promise API that will be adopted in
-> ES7.
-> Besides the strawman, promises have run a long way from CommonJS [5] to
-> jQuery [6] to Q [7] to Irakli's excellent post [8] to Domenic's recent rant
-> [9] and I've missed a lot of other examples probably. The JS community is
-> ready for promises. The idea has been used a lot.
-> Different libraries have different APIs and I have no preference. The only
-> things I really care about is chaining (with error forwarding) and a
-> promise-joining function &#224; la Q.all. I'll let people who care about naming
-> fight.
+> About the first step, there is a [strawman](http://wiki.ecmascript.org/doku.php?id=strawman:concurrency) that contains promises and it requires to define the event loop, so that's probably too much for ES6. Yet, it doesn't prevent to agree on a promise API that will be adopted in ES7. Besides the strawman, promises have run a long way from [CommonJS](http://wiki.commonjs.org/wiki/Promises) to [jQuery](http://api.jquery.com/category/deferred-object/) to [Q](https://github.com/kriskowal/q) to Irakli's [excellent post](http://jeditoolkit.com/2012/04/26/code-logic-not-mechanics.html) to Domenic's [recent rant](https://gist.github.com/3889970) and I've missed a lot of other examples probably. The JS community is ready for promises. The idea has been used a lot. Different libraries have different APIs and I have no preference. The only things I really care about is chaining (with error forwarding) and a promise-joining function &agrave; la `Q.all`. I'll let people who care about naming fight.
 >
-> I'm sure TC39 can come to an agreement *before* ES7 standardization,
-> agreement that can be used by WebIDL and browser APIs (why not implemented
-> long before ES7 work has even started).
-> If you're a JS dev and care about promises, please show some support to
-> this proposal :-)
->
+> I'm sure TC39 can come to an agreement *before* ES7 standardization, agreement that can be used by WebIDL and browser APIs (why not implemented long before ES7 work has even started). If you're a JS dev and care about promises, please show some support to this proposal :-)
 
 I support getting Promises done where they'll make an impact and right now
 DOM is the squeeky wheel. Yes, we need them in JS, but getting the eyes
 around this particular table opened to that is a fight I don't want right
 now (as the rest of this thread is painful, painful proof).
-
-
-> [1] http://lists.w3.org/Archives/**Public/public-script-coord/**
-> 2012OctDec/0122.html<http://lists.w3.org/Archives/Public/public-script-coord/2012OctDec/0122.html>
-> [2] https://wiki.mozilla.org/**WebAPI#APIs<https://wiki.mozilla.org/WebAPI#APIs>
-> [3] http://assets.en.oreilly.com/**1/event/79/Who%20Killed%20My%**
-> 20Battery_%20Analyzing%**20Mobile%20Browser%20Energy%**
-> 20Consumption%20Presentation.**pdf<http://assets.en.oreilly.com/1/event/79/Who%20Killed%20My%20Battery_%20Analyzing%20Mobile%20Browser%20Energy%20Consumption%20Presentation.pdf>
-> [4] http://wiki.ecmascript.org/**doku.php?id=strawman:**concurrency<http://wiki.ecmascript.org/doku.php?id=strawman:concurrency>
-> [5] http://wiki.commonjs.org/wiki/**Promises<http://wiki.commonjs.org/wiki/Promises>
-> [6] http://api.jquery.com/**category/deferred-object/<http://api.jquery.com/category/deferred-object/>
-> [7] https://github.com/kriskowal/q
-> [8] http://jeditoolkit.com/2012/**04/26/code-logic-not-**mechanics.html<http://jeditoolkit.com/2012/04/26/code-logic-not-mechanics.html>
-> [9] https://gist.github.com/**3889970 <https://gist.github.com/3889970>
 
 ## Brendan Eich
 
@@ -721,8 +675,7 @@ Alex Russell wrote:
 >  3. Introduce ES7 Promises as a compatible subset of DOMPromises
 >
 
-I agree with this approach provided TC39 (not just you) keeps tracking 
-and commenting. public-script-coord is not overused...
+I agree with this approach provided TC39 (not just you) keeps tracking and commenting. public-script-coord is not overused...
 
 > In an ideal world we'd go your route (as we would have with 
 > Object.observe() vs. Mutation Observers), but TC39 isn't known for 
@@ -745,8 +698,6 @@ Bottom line: it's a good thing for domain experts who also have good API
 chops to lead the way on DOMPromises. But do keep es-discuss (David, 
 Domenic, et al.) and TC39 (tomvc, especially) in the loop. Probably we 
 will meet in the middle, in ES7.
-
-/be
 
 ## David Herman
 
@@ -771,75 +722,72 @@ On Nov 7, 2012, at 7:48 AM, Brendan Eich <brendan at mozilla.com> wrote:
 
 I support this plan. Please keep me in the loop.
 
-Dave
-
 ## David Bruant
 
 [_Fri Nov 9 04:33:50 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026248.html)
 
 Hi,
 
-In this message, I'll be sharing some experience I've had with the Q 
-library. I have worked with it for about 7-8 months in a medium/big 
-Node.js application (closed source, so I can't link, sorry).
-I'll be covering only the parts that I have used during this experience. 
-It's related to my own writing style and I don't mean that the rest is 
-useless and should be thrown away, but the subset I'll be covering here 
-has proven to be sufficient to my needs for several months.
+In this message, I'll be sharing some experience I've had with the Q library. I have worked with it for about 7-8 months in a medium/big Node.js application (closed source, so I can't link, sorry).  I'll be covering only the parts that I have used during this experience. It's related to my own writing style and I don't mean that the rest is 
+useless and should be thrown away, but the subset I'll be covering here has proven to be sufficient to my needs for several months.
 
-I would be interested if others could share their experience if they had 
-a different way of using promises.
+I would be interested if others could share their experience if they had a different way of using promises.
 
 ### the Q API
-#### A Q Deferred is a {promise, reject, resolve} object. Only the 
-deferred holder can resolve the promise (and not the promise holder), 
+
+#### A Q Deferred is a {promise, reject, resolve} object.
+
+Only the deferred holder can resolve the promise (and not the promise holder), 
 addressing the security issue that's been raised on the list.
-You create a Deferred instance by calling Q.defer()
+You create a Deferred instance by calling `Q.defer()`
 
 Typically, when trying to promise-ify async APIs, you end up doing 
 something like (and that's probably also how things are done internally):
 
-     function query(myQuery){
-         var def = Q.defer();
+```javascript
+function query(myQuery){
+  var def = Q.defer();
 
-         db.query(myQuery, function(err, data){
-             if(err)
-                 def.reject(err)
-             else
-                 def.resolve(data)
-         })
+  db.query(myQuery, function(err, data){
+    if(err)
+      def.reject(err)
+    else
+      def.resolve(data)
+  })
 
-         return def.promise;
-     }
+  return def.promise;
+}
+```
 
 #### A Q Promise is a {then, fail} object.
+
 Given the previous code, it's possible to do:
 
-     var someData1P = query(q1);
-     someData1P.then(function(data){
-         // do something with data
-     });
-     someData1P.fail(function(error){
-         // handle the error
-     });
+```javascript
+var someData1P = query(q1);
+someData1P.then(function(data){
+  // do something with data
+});
+someData1P.fail(function(error){
+  // handle the error
+});
+```
 
 Both then and fail return another promise for the result of the callback
 
-     var someData1P = query(q1);
-     var processedDataP = someData1P.then(function first(data){
-         return process(data); // if what's returned here is a promise 
-P, then
-         // processedDataP will be a promise for the resolution value of 
-P, not
+```javascript
+var someData1P = query(q1);
+var processedDataP = someData1P.then(function first(data){
+    return process(data); // if what's returned here is a promise P, then
+         // processedDataP will be a promise for the resolution value of P, not
          // a promise for a promise of the resolution value of P
-         // Said another way, in a .then callback, the argument is 
-always a non-promise value
-     });
+         // Said another way, in a .then callback, the argument is always a non-promise value
+  });
 
-     var processedAgain = processedDataP.then(function 
-second(processedData){
-         // play with processed data
-     });
+var processedAgain = processedDataP.then(function second(processedData){
+    // play with processed data
+  });
+```
 
 Of course, this second call returns a promise too, which I'm free to ignore.
 If a database error occurred, neither the first nor the second callback 
@@ -847,87 +795,92 @@ will be called. Thanks to chaining, one interesting part is that I can
 hook a .fail only to th last promise in the chain to process the error. 
 Following previous code:
 
-     processedAgain.fail(function(err){
-         // handle error, even if it's an error as "old" database error
-     });
+```javascript
+processedAgain.fail(function(err){
+  // handle error, even if it's an error as "old" database error
+});
+```
 
-This is very close to how throw&amp;try/catch work where you don't always 
+This is very close to how throw & try/catch work where you don't always 
 need to handle the error as it happens, but you can catch it if no one 
 else before you did. It's possible to forward an error by re-throwing in 
 inside the callback. The above code could look like:
 
-     var someData1P = query(q1);
-     var processedDataP = someData1P.then(function first(data){
-         return process(data);
-     }).fail(function(err){
-         // process err at this level and forward it.
-         throw err;
-     })
+```javascript
+var someData1P = query(q1);
+var processedDataP = someData1P.then(function first(data){
+  return process(data);
+}).fail(function(err){
+  // process err at this level and forward it.
+  throw err;
+})
 
-     var processedAgain = processedDataP.then(function 
-second(processedData){
-         // play with processed data
-     }).fail(function(err){
-         // process the error
-     });
+var processedAgain = processedDataP.then(function second(processedData){
+  // play with processed data
+}).fail(function(err){
+  // process the error
+});
+```
 
-In this case, "intermediate" promises are generated (before the .fail). 
+In this case, "intermediate" promises are generated (before the `.fail`). 
 I don't think this is too high of an overhead for the excellent 
 readability it provides.
 
-The fact that the .then of the next promise is called when the previous 
-normally returned and the .fail when the previous threw makes me feel 
+The fact that the `.then` of the next promise is called when the previous 
+normally returned and the `.fail` when the previous threw makes me feel 
 like promise chains have sort of two parallel channels to which one 
 decides to branch to by returning or throwing.
 
 I agree with what Kevin Smith said about the Promises/A+ aesthetic 
-issue. The functions passed to .then and .fail are often function 
-expressions (for me, the only exception was some final .fail callbacks 
+issue. The functions passed to `.then` and `.fail` are often function 
+expressions (for me, the only exception was some final `.fail` callbacks 
 for which an error handling function had been prepared in advance and 
 was reused). I feel that when you have two function expressions 
 separated only with a comma (to separate the onsuccess and onerror 
 arguments), it's less easily readable than when you have your function 
-expression prefixed with ".then(" or ".fail(". That's mostly writing 
+expression prefixed with `.then(` or `.fail(`. That's mostly writing 
 style and aestetics so I won't be fighting to death to have both 
 separated, but it feels like noticeable enough to be noted.
 
 
 #### Q.all
-My favorite feature is the Q.all function. Q.all accepts an array of 
+
+My favorite feature is the `Q.all` function. `Q.all` accepts an array of 
 promises and returns a promise which will be fulfilled when all promises 
 are. The resolution values are the different promises resolution values:
 
-     var someData1P = query(q1);
-     var someData2P = query(q2);
-     var someData3P = fetch(url); // HTTP GET returning a promise
+```javascript
+var someData1P = query(q1);
+var someData2P = query(q2);
+var someData3P = fetch(url); // HTTP GET returning a promise
 
-     Q.all([someData1P, someData2P, someData3P])
-         .then(function(someData1, someData2, someData3){
-             // do something when all data are back
-         })
+Q.all([someData1P, someData2P, someData3P])
+  .spread(function(someData1, someData2, someData3){
+    // do something when all data are back
+  })
+```
 
 I used this extensively and it's been extremely helpful. Personally, to 
 synchronize different async operations, I've never read code more 
-elegant than what Q.all offers. I'm interested in hearing what other's 
+elegant than what `Q.all` offers. I'm interested in hearing what other's 
 experience is on that point.
-Arguably, Q.all could take several arguments instead of accepting only 
+Arguably, `Q.all` could take several arguments instead of accepting only 
 an array (that's one thing I'd change). Maybe there is a good reason to 
 enforce an array, but I don't know it.
 
-I think the .fail is called if any promise is broken you get only the 
-first error as a result of Q.all, but you can always inspect each 
+I think the `.fail` is called if any promise is broken you get only the 
+first error as a result of `Q.all`, but you can always inspect each 
 promise individually if you care about all errors. It never happened to 
-me. Usually, when I did Q.all, I cared if all were successful or if one 
+me. Usually, when I did `Q.all`, I cared if all were successful or if one 
 was broken, but several broken was not a use case I cared about. So, 
-Q.all covered the 80% case (well, actually 100%) for me.
-
-
+`Q.all` covered the 80% case (well, actually 100%) for me.
 
 ### Debugging
+
 It's been said in other messages, one part where Q promises fell short 
 was debugging. With thrown errors, if you uncatch one, your 
 devtools/console will tell you. To my experience, with the Q library, if 
-you forget a .fail, an error may end up being forgotten which is bad 
+you forget a `.fail`, an error may end up being forgotten which is bad 
 news in development mode (and I've wasted a lot of times not knowing an 
 error had happened and chasing this errors after understanding that's 
 why "nothing" was happening). I'm hopeful built-in promises will be able 
@@ -942,14 +895,14 @@ For sure, a GC'ed promise that hasn't been used to generate a new
 promise won't generate a new one, so if it's broken, it's clearly an 
 unhandled broken.
 I've seen the promise.end and promise.aside in Mariusz Nowak post and 
-both are very interesting. Specifically, .end is a way for developers to 
+both are very interesting. Specifically, `.end` is a way for developers to 
 say "this promise chain is over" which devtools can easily interpret as 
 "this promise won't forward the error any longer, I can report it as 
 uncaught (if uncaught)". For built-in promises, there is no need to 
 throw on failed promises lacking an onrejected I think (as it may be for 
-a library implementing .end).
+a library implementing `.end`).
 
-For un-GC'ed promises with no .end, I don't know what can be done. Maybe 
+For un-GC'ed promises with no `.end`, I don't know what can be done. Maybe 
 keep a record of all still-unhandled broken promises and have this 
 accessible in the devtools?
 I don't know to which extent this is workable and useful. I'm confident 
@@ -978,119 +931,38 @@ topic. I feel that overall, the Q API is really good to work with
 promises and my opinion is that a standard promise feature should have 
 the same features (I however don't care about the exact names of methods).
 
-David
-
 ## John J Barton
 
 [_Fri Nov 9 09:01:07 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026250.html)
-
-On Fri, Nov 9, 2012 at 4:33 AM, David Bruant <bruant.d at gmail.com> wrote:
-
-> Hi,
->
-> In this message, I'll be sharing some experience I've had with the Q
-> library. I have worked with it for about 7-8 months in a medium/big Node.js
-> application (closed source, so I can't link, sorry).
-> I'll be covering only the parts that I have used during this experience.
-> It's related to my own writing style and I don't mean that the rest is
-> useless and should be thrown away, but the subset I'll be covering here has
-> proven to be sufficient to my needs for several months.
->
-> I would be interested if others could share their experience if they had a
-> different way of using promises.
->
 
 I also used Q (a slightly older version) for several months before removing
 it because of cost/benefit.
 
 
->
-> ### the Q API
-> #### A Q Deferred is a {promise, reject, resolve} object. Only the deferred
-> holder can resolve the promise (and not the promise holder), addressing the
-> security issue that's been raised on the list.
-> You create a Deferred instance by calling Q.defer()
->
-> Typically, when trying to promise-ify async APIs, you end up doing
-> something like (and that's probably also how things are done internally):
->
->     function query(myQuery){
->         var def = Q.defer();
->
->         db.query(myQuery, function(err, data){
->             if(err)
->                 def.reject(err)
->             else
->                 def.resolve(data)
->         })
->
->         return def.promise;
->     }
->
-
-I had lots of code like that.
-
-
->
-> #### A Q Promise is a {then, fail} object.
-> Given the previous code, it's possible to do:
->
->     var someData1P = query(q1);
->     someData1P.then(function(data)**{
->         // do something with data
->     });
->     someData1P.fail(function(**error){
->         // handle the error
->     });
->
-> Both then and fail return another promise for the result of the callback
->
+>```javascript
+>var someData1P = query(q1);
+>someData1P.then(function(data){
+>  // do something with data
+>});
+>someData1P.fail(function(error){
+>  // handle the error
+>});
+>```
 
 Note these callbacks: promise based code is very callback-y.
 
- ....
-
->
->
-> #### Q.all
-> My favorite feature is the Q.all function. Q.all accepts an array of
-> promises and returns a promise which will be fulfilled when all promises
-> are.
-
-...
-
-
-
-> I used this extensively and it's been extremely helpful. Personally, to
-> synchronize different async operations, I've never read code more elegant
-> than what Q.all offers. I'm interested in hearing what other's experience
-> is on that point.
->
-
-I agree that this is the most valuable feature and the one that got me to
+I agree that `Q.all` is the most valuable feature and the one that got me to
 try Q and stick with it for a while. However, in my experience  this
 feature is only needed a few times in an application.
 
-
->
 > ### Debugging
 > It's been said in other messages, one part where Q promises fell short was
 > debugging.
-
-...
->
 
 I suppose if we stick to console logging I could agree with this very rosy
 description. But Q makes breakpoint debugging essentially useless: the call
 stack is gone and you have to break much more often then try to correlate
 the values across breakpoints.
-
-
-> I think I've shared pretty much all my experience and thoughts on the
-> topic. I feel that overall, the Q API is really good to work with promises
-> and my opinion is that a standard promise feature should have the same
-> features (I however don't care about the exact names of methods).
-
 
 I agree that Q is exceptionally well done, so much so that I came away much
 less enthusiastic about the promise concept overall.
@@ -1099,14 +971,7 @@ less enthusiastic about the promise concept overall.
 
 [_Fri Nov 9 09:35:39 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026253.html)
 
-On Fri, Nov 9, 2012 at 9:01 AM, John J Barton
-<johnjbarton at johnjbarton.com>wrote:
 
->
->
->
-> On Fri, Nov 9, 2012 at 4:33 AM, David Bruant <bruant.d at gmail.com> wrote:
->
 >> Hi,
 >>
 >> In this message, I'll be sharing some experience I've had with the Q
@@ -1123,16 +988,14 @@ On Fri, Nov 9, 2012 at 9:01 AM, John J Barton
 >
 > I also used Q (a slightly older version) for several months before
 > removing it because of cost/benefit.
->
 
-I would like to understand this better. When you using only the .then/.when
-callback style, or were you using the .send/.post style to send eventual
+I would like to understand this better. When you using only the `.then`/`.when`
+callback style, or were you using the `.send`/`.post` style to send eventual
 messages to the promised object? In my own code, I use mostly the
-.send/.post style, and I find it substantially improves readability.
+`.send`/`.post` style, and I find it substantially improves readability.
 
-See <https://docs.google.com/file/d/0Bw0VXJKBgYPMU1gzQ3hkY0Vrbmc/edit>
-(with improved slides at <
-http://code.google.com/p/es-lab/downloads/detail?name=friam.pdf#makechanges>)
+See https://docs.google.com/file/d/0Bw0VXJKBgYPMU1gzQ3hkY0Vrbmc/edit
+(with improved slides [here](http://code.google.com/p/es-lab/downloads/detail?name=friam.pdf#makechanges))
 for a particularly elegant example using promises. I would be curious how
 well you could express this without promises.
 
@@ -1141,55 +1004,9 @@ well you could express this without promises.
 
 [_Fri Nov 9 10:08:26 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026254.html)
 
-On Fri, Nov 9, 2012 at 9:35 AM, Mark S. Miller <erights at google.com> wrote:
-
->
->
->
-> On Fri, Nov 9, 2012 at 9:01 AM, John J Barton <johnjbarton at johnjbarton.com
-> > wrote:
->
->>
->>
->>
->> On Fri, Nov 9, 2012 at 4:33 AM, David Bruant <bruant.d at gmail.com> wrote:
->>
->>> Hi,
->>>
->>> In this message, I'll be sharing some experience I've had with the Q
->>> library. I have worked with it for about 7-8 months in a medium/big Node.js
->>> application (closed source, so I can't link, sorry).
->>> I'll be covering only the parts that I have used during this experience.
->>> It's related to my own writing style and I don't mean that the rest is
->>> useless and should be thrown away, but the subset I'll be covering here has
->>> proven to be sufficient to my needs for several months.
->>>
->>> I would be interested if others could share their experience if they had
->>> a different way of using promises.
->>>
->>
->> I also used Q (a slightly older version) for several months before
->> removing it because of cost/benefit.
->>
->
-> I would like to understand this better. When you using only the
-> .then/.when callback style, or were you using the .send/.post style to send
-> eventual messages to the promised object? In my own code, I use mostly the
-> .send/.post style, and I find it substantially improves readability.
->
-
-Only .then/.when. That is the style that many examples promote. I don't
-know about .send/.post.  (Style is also important in callback based async
+Only `.then`/`.when`. That is the style that many examples promote. I don't
+know about `.send`/`.post`.  (Style is also important in callback based async
 coding, which is why the case against that approach is often over stated).
-
-
->
-> See <https://docs.google.com/file/d/0Bw0VXJKBgYPMU1gzQ3hkY0Vrbmc/edit>
-> (with improved slides at <
-> http://code.google.com/p/es-lab/downloads/detail?name=friam.pdf#makechanges>)
-> for a particularly elegant example using promises. I would be curious how
-> well you could express this without promises.
->
 
 I also encountered a couple of cases where promises work exceptionally
 well. If promises were built into the language and debuggers were upgraded,
@@ -1199,63 +1016,37 @@ the panacea I imagined when reading examples written by advocates.  I would
 strongly advocate realistic evaluation of a debugging system for promises
 (like eg Causeway) before committing to implementing them in the language.
 
-jjb
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121109/e6b9a719/attachment-0001.html>
-
 ## David Bruant
 
 [_Tue Nov 13 02:35:13 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026315.html)
 
-Le 09/11/2012 18:01, John J Barton a &#233;crit :
+>```javascript
+>function query(myQuery){
+>  var def = Q.defer();
 >
-> On Fri, Nov 9, 2012 at 4:33 AM, David Bruant <bruant.d at gmail.com 
-> <mailto:bruant.d at gmail.com>> wrote:
+>  db.query(myQuery, function(err, data){
+>    if(err)
+>      def.reject(err)
+>    else
+>      def.resolve(data)
+>    })
 >
->
->     # the Q API
->     ## A Q Deferred is a {promise, reject, resolve} object. Only the
->     deferred holder can resolve the promise (and not the promise
->     holder), addressing the security issue that's been raised on the list.
->     You create a Deferred instance by calling Q.defer()
->
->     Typically, when trying to promise-ify async APIs, you end up doing
->     something like (and that's probably also how things are done
->     internally):
->
->         function query(myQuery){
->             var def = Q.defer();
->
->             db.query(myQuery, function(err, data){
->                 if(err)
->                     def.reject(err)
->                 else
->                     def.resolve(data)
->             })
->
->             return def.promise;
->         }
->
-> I had lots of code like that.
-I did too. If a library has a callback style, this boilerplate is 
+>  return def.promise;
+>}
+>```
+
+I had lots of code like that.  If a library has a callback style, this boilerplate is 
 necessary, but if a library naturally has promises, it's fine.
 The good news is that with only a bit of boilerplate code, one can work 
 with one or the other style. Things would be better, but could also be 
 much worse.
 
->
->     ### Debugging
->     It's been said in other messages, one part where Q promises fell
->     short was debugging.
->
->     ...
->
->
+
 > I suppose if we stick to console logging I could agree with this very 
 > rosy description. But Q makes breakpoint debugging essentially 
 > useless: the call stack is gone and you have to break much more often 
 > then try to correlate the values across breakpoints.
+
 True. You mentioned it in your last response, but built-in promises 
 debugging would be of great help, because it has knowledge of the 
 promise chain and could enable stepping from one resolution function to 
@@ -1263,27 +1054,25 @@ another resolution function.
 Note that it would be impossible or close to impossible to have such a 
 feature with DOMRequest (since they do not form a chain)
 
-David
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: <http://mail.mozilla.org/pipermail/es-discuss/attachments/20121113/e3534f7f/attachment.html>
-
 ## Claus Reinke
 
 [_Fri Nov 9 09:06:54 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026251.html)
 
 > Both then and fail return another promise for the result of the callback
-> 
->     var someData1P = query(q1);
->     var processedDataP = someData1P.then(function first(data){
->         return process(data); // if what's returned here is a promise 
-> P, then
->         // processedDataP will be a promise for the resolution value of 
-> P, not
+>
+>```javascript
+>var someData1P = query(q1);
+>var processedDataP = someData1P.then(function first(data){
+>    return process(data); // if what's returned here is a promise P, then
+>         // processedDataP will be a promise for the resolution value of P, not
 >         // a promise for a promise of the resolution value of P
->         // Said another way, in a .then callback, the argument is 
-> always a non-promise value
->     });
+>         // Said another way, in a .then callback, the argument is always a non-promise value
+>  });
+>
+>var processedAgain = processedDataP.then(function second(processedData){
+>    // play with processed data
+>  });
+>```
 
 Perhaps I'm misunderstanding - my reading of the spec (fairly
 concise tutorial at https://github.com/kriskowal/q) is: 
@@ -1344,15 +1133,9 @@ There is also the interesting issue of asynch coding constructing code
 that will raise errors where the original error handlers wrapping the
 code construction site aren't in place anymore.
 
-Claus
-
 ## Domenic Denicola
 
 [_Fri Nov 9 09:25:41 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026252.html)
-
------Original Message-----
-From: es-discuss-bounces at mozilla.org [mailto:es-discuss-bounces at mozilla.org] On Behalf Of Claus Reinke
-Sent: Friday, November 9, 2012 09:07
 
 > Another idea: log such transformed errors, or automate matching of handled failed promises against generated failed promises.
 
@@ -1396,8 +1179,6 @@ opportunities for better tooling might be inferred: don't hide them here
 were they aren't actionable (there was an example of memory leak
 tracking recently on this list, iirc).
 
-Claus
-
 ## Brendan Eich
 
 [_Fri Nov 9 18:14:03 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026264.html)
@@ -1410,9 +1191,7 @@ What about task.js's join?
 
 https://github.com/mozilla/task.js/blob/master/examples/read.html#L41
 
-Generators + promises = tasks ;-).
-
-/be
+Generators + promises = tasks ;-)
 
 ## David Bruant
 
@@ -1426,6 +1205,7 @@ Le 10/11/2012 03:14, Brendan Eich a &#233;crit :
 > What about task.js's join?
 >
 > https://github.com/mozilla/task.js/blob/master/examples/read.html#L41
+
 I feel it's pretty much equivalent. Maybe slightly less verbose. I'd 
 write the same code with promises as:
 
@@ -1435,6 +1215,7 @@ write the same code with promises as:
      });
 
 > Generators + promises = tasks ;-)
+
 It took me several months to understand the value of tasks.js and then I 
 loved the idea (though I haven't used it because of the lack of 
 generators in platforms). The code you linked to leaves me somehow 
@@ -1443,8 +1224,6 @@ this advantage that they make clear what's sync and what's async. But
 maybe I also need to step out of my comfort zone for this case...
 
 What's the error forwarding/handling story for tasks?
-
-David
 
 ## Aymeric Vitte
 
@@ -1458,48 +1237,6 @@ forced me to use [do_not_wait, setTimeout, clearTimeout,...] which makes
 part of the code look like a mess and that I found not easy at all to 
 synchronize.
 
-Le 13/11/2012 11:43, David Bruant a &#233;crit :
-> Le 10/11/2012 03:14, Brendan Eich a &#233;crit :
->> David Bruant wrote:
->>> Personally, to synchronize different async operations, I've never 
->>> read code more elegant than what Q.all offers.
->>
->> What about task.js's join?
->>
->> https://github.com/mozilla/task.js/blob/master/examples/read.html#L41
-> I feel it's pretty much equivalent. Maybe slightly less verbose. I'd 
-> write the same code with promises as:
->
->     Q.all(read("sleep.html"), read("read.html")).then(function(f1, f2){
->         out.innerHTML += "sleep.html: " + (f1.responseText.length) + 
-> "\n";
->         out.innerHTML += "read.html: " + (f2.responseText.length) + "\n";
->     });
->
->> Generators + promises = tasks ;-)
-> It took me several months to understand the value of tasks.js and then 
-> I loved the idea (though I haven't used it because of the lack of 
-> generators in platforms). The code you linked to leaves me somehow 
-> uneasy, because it looks like sync code while it's async. Promises 
-> have this advantage that they make clear what's sync and what's async. 
-> But maybe I also need to step out of my comfort zone for this case...
->
-> What's the error forwarding/handling story for tasks?
->
-> David
-> _______________________________________________
-> es-discuss mailing list
-> es-discuss at mozilla.org
-> https://mail.mozilla.org/listinfo/es-discuss
-
--- 
-jCore
-Email :  avitte at jcore.fr
-Web :    www.jcore.fr
-Webble : www.webble.it
-Extract Widget Mobile : www.extractwidget.com
-BlimpMe! : www.blimpme.com
-
 ## Brendan Eich
 
 [_Wed Nov 14 10:23:53 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026358.html)
@@ -1510,28 +1247,26 @@ David Bruant wrote:
 That's the real beauty: try-catch and yield with thrown exceptions from 
 resumed generators compose just as you'd expect.
 
-/be
-
 ## Mark S. Miller
 
 [_Fri Nov 9 08:33:13 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026249.html)
 
 Hi David, thanks for your thoughtful post. I've always used the two-arg
 form of .then[1], but your post makes a strong case for more often using
-separate one-arg .then and .fail calls. I say only "more often" because the
+separate one-arg `.then` and `.fail` calls. I say only "more often" because the
 two arg form can easily make distinctions that the one-arg forms cannot
 
-    var p2 = Q(p1).then(val => { throw foo(val); },
-                        reason => { return bar(reason); });
+```javascript
+var p2 = Q(p1).then(val => { throw foo(val); },
+                    reason => { return bar(reason); });
+```
 
 is different than either of the one-arg chainings. It'll be interesting to
 look over old code and see how often this difference matters. My guess is
 it usually doesn't, in which case your style should dominate.
 
-[1] In my code and in my Q specs <
-http://wiki.ecmascript.org/doku.php?id=strawman:concurrency> and
-implementations <
-http://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/ses/makeQ.js>,
+[1] In my code and in my Q specs <http://wiki.ecmascript.org/doku.php?id=strawman:concurrency> and
+implementations <http://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/ses/makeQ.js>,
 I have been using "when" rather than "then". Because these are otherwise
 compatible AFAICT with A+, for the sake of consensus I'm willing to change
 this to "then" everywhere. But before I do, I'd like to make one last plea
@@ -1541,14 +1276,15 @@ The word "when" is clearly temporal, and suggests postponing something
 until some enabling condition. This seems perfect. The word "then" in
 programming is most closely associated with the concept of an "if then
 else", even though curly bracket languages never spell out the "then". When
-I look at your .then/.fail examples, the first thought that always pops
-into my head is "Shouldn't the opposite of .then be .else ?" Of course
-.fail is appropriate and .else is not. But isn't .then inappropriate for
+I look at your `.then`/`.fail` examples, the first thought that always pops
+into my head is "Shouldn't the opposite of `.then` be `.else` ?" Of course
+`.fail` is appropriate and `.else` is not. But isn't `.then` inappropriate for
 the same reason?
 
-.then gets especially confusing when dealing with a promise for a boolean.
+`.then` gets especially confusing when dealing with a promise for a boolean.
 Consider the asyncAnd operation:
 
+```javascript
 function asyncAnd(answerPs) {
   let countDown = answerPs.length;
   if (countDown === 0) { return Q(true); }
@@ -1564,18 +1300,19 @@ function asyncAnd(answerPs) {
   }
   return resultP;
 }
+```
 
 
-The code above, for good reason, uses both "then" and "else" in talking
+The code above, for good reason, uses both `then` and `else` in talking
 about the same abstract value. This suggests the boolean reading for the
-"then" that is just completely wrong. Replacing the "then" with a "when"
+`then` that is just completely wrong. Replacing the `then` with a `when`
 makes this code read well IMO.
 
 If this argument fails to persuade us on es-discuss to switch to "when", I
-will proceed to replace all my uses of "when" with "then" and declare this
+will proceed to replace all my uses of `when` with `then` and declare this
 terminology issue over.
 
-Btw, above I tried using your one-arg .then and .fail style. I think this
+Btw, above I tried using your one-arg `.then` and `.fail` style. I think this
 worked well.
 
 
@@ -1633,48 +1370,51 @@ choice stuck. This suggests that we name the state "rejected".
 
 [_Fri Nov 9 11:32:35 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026255.html)
 
-From: es-discuss-bounces at mozilla.org [mailto:es-discuss-bounces at mozilla.org] On Behalf Of Mark S. Miller
-Sent: Friday, November 9, 2012 08:33
+From: Mark S. Miller Friday, November 9, 2012 08:33
 
-> Hi David, thanks for your thoughtful post. I've always used the two-arg form of .then[1], but your post makes a strong case for more often using separate one-arg .then and .fail calls.
+> I've always used the two-arg form of .then[1], but your post makes a strong case for more often using separate one-arg .then and .fail calls.
 
 We have found this to be more expressive as well. Especially in ES5 environments, where we can use Q's alias of `catch` instead of `fail`:
 
+```javascript
 p1.then(val => doStuff)
      .catch(err => console.error(err));
+```
 
-> I have been using "when" rather than "then". Because these are otherwise compatible AFAICT with A+, for the sake of consensus I'm willing to change this to "then" everywhere. But before I do, I'd like to make one last plea for "when" and see how this community responds.
+> I have been using `when` rather than `then`. Because these are otherwise compatible AFAICT with A+, for the sake of consensus I'm willing to change this to `then` everywhere. But before I do, I'd like to make one last plea for `when` and see how this community responds.
 
-I think perhaps because of my background as someone who has only ever programmed for nontrivial amounts of time in curly-bracket languages (C, C++, C#, JavaScript), I really don't see "then" as part of an "if-then-else" chain. None of your examples seem confusing to me! I don't know though, as this is obviously very subjective.
+I think perhaps because of my background as someone who has only ever programmed for nontrivial amounts of time in curly-bracket languages (C, C++, C#, JavaScript), I really don't see `then` as part of an "if-then-else" chain. None of your examples seem confusing to me! I don't know though, as this is obviously very subjective.
 
-However, I see a lot of value in "when" as a word still. "Then" makes sense when used as a method:
+However, I see a lot of value in `when` as a word still. `Then` makes sense when used as a method:
 
+```javascript
 doThis().then(doThat).then(doAnotherThing)
+```
 
-But "when" makes sense when used as a function:
+But `when` makes sense when used as a function:
 
+```javascript
 let this = doThis();
 let that = when(this, doThat);
 let anotherThing = when(that, doAnotherThing);
+```
 
 or even
 
+```javascript
 let that = when(this).then(doThat);
+```
 
 where here `when()` is either making a value into a promise or assimilating an untrusted (or crappily-implemented) promise.
 
-It also, to me, makes sense when used as a message, in the sense of promiseSend. This is a bit less important though I guess.
+It also, to me, makes sense when used as a message, in the sense of `promiseSend`. This is a bit less important though I guess.
 
 ## Kevin Smith
 
 [_Fri Nov 9 11:40:19 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026256.html)
 
 > We have found this to be more expressive as well. Especially in ES5
-> environments, where we can use Q's alias of `catch` instead of `fail`:
->
-> p1.then(val => doStuff)
->      .catch(err => console.error(err));
->
+> environments, where we can use Q's alias of `catch` instead of `fail`.
 
 Nice: +1
 
@@ -1691,9 +1431,10 @@ Nice: +1
 
 [_Fri Nov 9 13:33:41 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026262.html)
 
->  p1.then(val => doStuff)
->>      .catch(err => console.error(err));
->>
+>```javascript
+>p1.then(val => doStuff)
+>  .catch(err => console.error(err));
+>```
 >
 > Nice: +1
 >
@@ -1701,17 +1442,19 @@ Nice: +1
 On further thought, I'm not so sure.  Consider this code, which creates a
 directory if it doesn't already exist and then logs "done".
 
-    return AFS.stat(path).then(stat => {
+```javascript
+return AFS.stat(path).then(stat => {
 
-        if (!stat.isDirectory())
-            throw new Error("Path is not a directory.");
+    if (!stat.isDirectory())
+        throw new Error("Path is not a directory.");
 
-    }, error => {
+}, error => {
 
-        // Path doesn't exist - create the directory
-        return AFS.mkdir(path);
+    // Path doesn't exist - create the directory
+    return AFS.mkdir(path);
 
-    }).then(val => console.log("done"));
+}).then(val => console.log("done"));
+```
 
 
 Breaking the error handler out into its own "fail" method seems to make
@@ -1731,8 +1474,6 @@ Kevin Smith wrote:
 
 Agreed. The single-parameter name can help avoid the "anonymous 
 functions separated by comma" problem too.
-
-/be
 
 ## Claus Reinke
 
@@ -1757,8 +1498,10 @@ Conditional branching is as important for method chains as it is
 for statement lists. But we do not use conditionals as the basic
 statement form:
 
-    if (true) { console.log( 1 ) }
-    if (true) { console.log( 2 ) }
+```javascript
+if (true) { console.log(1) }
+if (true) { console.log(2) }
+```
 
 One could also argue that promise failure is an exceptional condition,
 so two-pronged 'then' encourages API designs that use exceptions for
@@ -1777,6 +1520,7 @@ you note (disentangling the conditions).
 Ok, I had to try anyway;-) It took me a few attempts before I had an 
 alternative that I was willing to show. How about this:
 
+```javascript
 return AFS.stat(path)
     .fail(error => null) // map failure to success condition
     .then(stat =>
@@ -1789,6 +1533,7 @@ return AFS.stat(path)
             throw new Error("Path is not a directory.");
 
     ).then(val => console.log("done"));
+```
 
 We can then provide a standard promise method for the mapping 
 from success/failure to nullable conditions, such as
@@ -1798,27 +1543,11 @@ from success/failure to nullable conditions, such as
 and the code would become as pleasing as and the intentions 
 arguably clearer than in the original example.
 
-Claus
-
 ## Kevin Smith
 
 [_Sat Nov 10 11:22:33 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026269.html)
 
-> return AFS.stat(path)
->    .fail(error => null) // map failure to success condition
->    .then(stat =>
->
->        if (!stat)    // Path doesn't exist - create the directory
->            return AFS.mkdir(path);
->        else if (stat.isDirectory())    // done already
->            return 'nothing to do';
->        else    // no can do
->
->            throw new Error("Path is not a directory.");
->
->    ).then(val => console.log("done"));
->
->
+
 Provided that fail provides the implicit success handler `val => val`, I
 think that's correct.  Question:  is one-arg `then` + `fail` equally as
 powerful as two-arg then?  Proof?
@@ -1827,40 +1556,12 @@ powerful as two-arg then?  Proof?
 
 [_Sat Nov 10 15:46:07 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026270.html)
 
-On Sat, Nov 10, 2012 at 11:22 AM, Kevin Smith <khs4473 at gmail.com> wrote:
-
->
-> return AFS.stat(path)
->>    .fail(error => null) // map failure to success condition
->>    .then(stat =>
->>
->>        if (!stat)    // Path doesn't exist - create the directory
->>            return AFS.mkdir(path);
->>        else if (stat.isDirectory())    // done already
->>            return 'nothing to do';
->>        else    // no can do
->>
->>            throw new Error("Path is not a directory.");
->>
->>    ).then(val => console.log("done"));
->>
->>
-> Provided that fail provides the implicit success handler `val => val`, I
-> think that's correct.  Question:  is one-arg `then` + `fail` equally as
-> powerful as two-arg then?  Proof?
->
-
 Is the following a counter-example?
 
-On Fri, Nov 9, 2012 at 8:33 AM, Mark S. Miller <erights at google.com> wrote:
-
-> Hi David, thanks for your thoughtful post. I've always used the two-arg
-> form of .then[1], but your post makes a strong case for more often using
-> separate one-arg .then and .fail calls. I say only "more often" because the
-> two arg form can easily make distinctions that the one-arg forms cannot
->
->     var p2 = Q(p1).then(val => { throw foo(val); },
->                         reason => { return bar(reason); });
+>```javascript
+>var p2 = Q(p1).then(val => { throw foo(val); },
+>                    reason => { return bar(reason); });
+>```
 >
 > is different than either of the one-arg chainings.
 >
@@ -1869,91 +1570,33 @@ On Fri, Nov 9, 2012 at 8:33 AM, Mark S. Miller <erights at google.com> wrote:
 
 [_Sun Nov 11 05:44:12 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026271.html)
 
-> Is the following a counter-example?
->
-> On Fri, Nov 9, 2012 at 8:33 AM, Mark S. Miller <erights at google.com> wrote:
->
->> Hi David, thanks for your thoughtful post. I've always used the two-arg
->> form of .then[1], but your post makes a strong case for more often using
->> separate one-arg .then and .fail calls. I say only "more often" because the
->> two arg form can easily make distinctions that the one-arg forms cannot
->>
->>     var p2 = Q(p1).then(val => { throw foo(val); },
->>                         reason => { return bar(reason); });
->>
->> is different than either of the one-arg chainings.
->>
->
 I don't think so.  Consider the general two-arg form:
 
-    promise.then(onSuccess, onFail);
+```javascript
+promise.then(onSuccess, onFail);
+```
 
 We can transform that into a one-arg form like so:
 
-    function WrappedError(err) {
-        this.error = err;
-    }
+```javascript
+function WrappedError(err) {
+    this.error = err;
+}
 
-    promise
-    .fail(err => new WrappedError(err))
-    .then(val => val instanceof WrappedError ? onFail(val.error) :
-onSuccess(val));
+promise
+.fail(err => new WrappedError(err))
+.then(val => val instanceof WrappedError ? onFail(val.error) : onSuccess(val));
+```
 
-But this involves the creation of an extra (unnecessary) node in the graph.
- And it's obtuse.  I still think the two-arg form makes the most sense as a
-base-level "then" API.
+But this involves the creation of an extra (unnecessary) node in the graph. And it's obtuse.  I still think the two-arg form makes the most sense as a base-level "then" API.
 
 ## David Bruant
 
 [_Tue Nov 13 06:33:59 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026318.html)
 
-Le 11/11/2012 14:44, Kevin Smith a &#233;crit :
->
->     Is the following a counter-example?
->
->     On Fri, Nov 9, 2012 at 8:33 AM, Mark S. Miller <erights at google.com
->     <mailto:erights at google.com>> wrote:
->
->         Hi David, thanks for your thoughtful post. I've always used
->         the two-arg form of .then[1], but your post makes a strong
->         case for more often using separate one-arg .then and .fail
->         calls. I say only "more often" because the two arg form can
->         easily make distinctions that the one-arg forms cannot
->
->         var p2 = Q(p1).then(val => { throw foo(val); },
->                           reason => { return bar(reason); });
->
->         is different than either of the one-arg chainings.
->
->
-> I don't think so.  Consider the general two-arg form:
->
->     promise.then(onSuccess, onFail);
->
-> We can transform that into a one-arg form like so:
->
->     function WrappedError(err) {
->         this.error = err;
->     }
->     promise
->     .fail(err => new WrappedError(err))
->     .then(val => val instanceof WrappedError ? onFail(val.error) : 
-> onSuccess(val));
->
-> But this involves the creation of an extra (unnecessary) node in the 
-> graph.
-I agree. But I feel it's possible for engines to optimize (both in time 
-and memory) by detecting the .then(func).fail() (or the other way 
-around) pattern.
-Also, assuming async programming is related to DB query/disk 
-access/network I think these costs are negligible when compared with the 
-time to wait for network or a user input or a timeout.
+I agree. But I feel it's possible for engines to optimize (both in time and memory) by detecting the .then(func).fail() (or the other way around) pattern. Also, assuming async programming is related to DB query/disk access/network I think these costs are negligible when compared with the time to wait for network or a user input or a timeout.
 
-> And it's obtuse.  I still think the two-arg form makes the most sense 
-> as a base-level "then" API.
-If the second argument is optional, it's possible to have both one-arg 
-and two-arg styles in the same API.
-What do people think about this idea?
+If the second argument is optional, it's possible to have both one-arg and two-arg styles in the same API. What do people think about this idea?
 
 ## Kevin Smith
 
@@ -1969,63 +1612,59 @@ good strategy here, too.
 
 Here's what I'm thinking:
 
-    // Creates a new promise
-    let promise = new Promise();
+```javascript
+// Creates a new promise
+let promise = new Promise();
 
-    // Resolves the promise (ala Q)
-    promise.resolve(value);
+// Resolves the promise (ala Q)
+promise.resolve(value);
 
-    // Rejects the promise (ala Q)
-    promise.reject(value);
+// Rejects the promise (ala Q)
+promise.reject(value);
 
-    // A handle to the eventual value of the promise
-    promise.future;
+// A handle to the eventual value of the promise
+promise.future;
 
-    // The then method (ala Promises/A+)
-    promise.future.then(val => {
+// The then method (ala Promises/A+)
+promise.future.then(val => {
 
-        // Success handler
+    // Success handler
 
-    }, err => {
+}, err => {
 
-        // Error handler
-    });
+    // Error handler
+});
 
-    // Returns a future for the value
-    Promise.when(value);
+// Returns a future for the value
+Promise.when(value);
 
-    // Returns a rejected future with the specified error
-    Promise.reject(error);
+// Returns a rejected future with the specified error
+Promise.reject(error);
 
-    // Returns a future for every eventual value in the list
-    Promise.whenAll(list);
+// Returns a future for every eventual value in the list
+Promise.whenAll(list);
 
-    // Returns a future for the first resolved future in the list
-    Promise.whenAny(list);
+// Returns a future for the first resolved future in the list
+Promise.whenAny(list);
+```
 
-Initial implementation here: https://github.com/jscloud/Promise
+Initial implementation [here](https://github.com/jscloud/Promise)
 
-I think it's important to separate "Promise" from "Future".  Back in the
-CommonJS mailing list days, there was contention between Promises/A
-(thenables) and Promises/B (basically Q).  But they really are
-complementary:  futures and promises.
+I think it's important to separate "Promise" from "Future".  Back in the CommonJS mailing list days, there was contention between Promises/A (thenables) and Promises/B (basically Q).  But they really are complementary:  futures and promises.
 
 ## Mark S. Miller
 
 [_Mon Nov 12 07:43:29 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026282.html)
 
-On Fri, Nov 9, 2012 at 8:33 AM, Mark S. Miller <erights at google.com> wrote:
+On Fri, Nov 9, 2012 at 8:33 AM, Mark S. Miller wrote:
 
-> [...] In my code and in my Q specs <
-> http://wiki.ecmascript.org/doku.php?id=strawman:concurrency> and
-> implementations <
-> http://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/ses/makeQ.js>,
+> [...] In my code and in my [Q specs](http://wiki.ecmascript.org/doku.php?id=strawman:concurrency) and
+> [implementations](http://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/ses/makeQ.js),
 > I have been using "when" rather than "then". Because these are otherwise
 > compatible AFAICT with A+, for the sake of consensus I'm willing to change
 > this to "then" everywhere. But before I do, I'd like to make one last plea
 > for "when" and see how this community responds.
->
-[...]
+> [...]
 
 > If this argument fails to persuade us on es-discuss to switch to "when", I
 > will proceed to replace all my uses of "when" with "then" and declare this
@@ -2045,14 +1684,9 @@ Updates to code coming when I have time.
 
 [_Mon Nov 12 08:36:06 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026284.html)
 
-On 12 November 2012 16:43, Mark S. Miller <erights at google.com> wrote:
 > The shift back to "when" clearly failed to achieve consensus.
 
-FWIW, I think "then" is better, because "when" sounds as if it should
-be passed some kind of predicate or condition. It just doesn't read
-very natural when taking continuations.
-
-/Andreas
+FWIW, I think "then" is better, because "when" sounds as if it should be passed some kind of predicate or condition. It just doesn't read very natural when taking continuations.
 
 ## David Bruant
 
