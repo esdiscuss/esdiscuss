@@ -1006,7 +1006,7 @@ it because of cost/benefit.
 
 >
 > ### the Q API
-> ## A Q Deferred is a {promise, reject, resolve} object. Only the deferred
+> #### A Q Deferred is a {promise, reject, resolve} object. Only the deferred
 > holder can resolve the promise (and not the promise holder), addressing the
 > security issue that's been raised on the list.
 > You create a Deferred instance by calling Q.defer()
@@ -1245,7 +1245,7 @@ with one or the other style. Things would be better, but could also be
 much worse.
 
 >
->     # Debugging
+>     ### Debugging
 >     It's been said in other messages, one part where Q promises fell
 >     short was debugging.
 >
@@ -1323,7 +1323,7 @@ access to multiple promise results is needed. That refactoring fails
 if 'then's are used for failure callbacks, and using 'fail' would make
 that more obvious.
  
-> # Debugging
+> ### Debugging
 > It's been said in other messages, one part where Q promises fell short 
 > was debugging. With thrown errors, if you uncatch one, your 
 > devtools/console will tell you. To my experience, with the Q library, if 
