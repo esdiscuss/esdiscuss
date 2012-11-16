@@ -1,5 +1,7 @@
 # Promises
 
+This is a discussion of promises. It covers how they can be used to represent asyncronous values and error handling. There is some debate over whether it should be included in the language, and if so when.  There is also considerable discussion of terminology. `.then` seems to be mostly agreed on in preference to `.when` but there is still considerable debate about the overloaded terms `promise`, `future` and `deferred`.
+
 ## David Bruant
 
 [_Tue Nov 6 10:47:17 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026188.html)
@@ -1590,9 +1592,63 @@ promise
 
 But this involves the creation of an extra (unnecessary) node in the graph. And it's obtuse.  I still think the two-arg form makes the most sense as a base-level "then" API.
 
+## Leo Meyerovich
+
+[_Sun Nov 11 17:46:00 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026276.html)
+
+> Many of the DOM APIs are effectively broken promises
+
+Reading the thread again, is this really the primary motivation for adding promises? I don't see how the energy issue gets noticeably addressed, and so it sounds like, indeed, "you can always build a promise library on top of the current APIs." 
+
+There may be real expressive value to a serious promise proposal, however. It can enable identifying asynchronous APIs and then 1) allowing frameworks to introspect on them and 2) clarifying the succeed/fail protocol. Doing so with standard promises seems awkward and insufficient, however, because their use only becomes apparent via duck typing: you wrap every API call, intercept the return, and check if it was a promise. Supporting introspection *before* the call seems more desirable. (So, perhaps, the proposal would be for a special async prototype added to any async API call).
+
+## Brendan Eich
+
+[_Sun Nov 11 22:37:32 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026277.html)
+
+Have you checked out http://taskjs.org/ yet? Builds on ES6 generators 
+(prefigured by ES4-era generators, inspired by Python 2.5 and with ES6 
+matching PEP380 in intent and function if not form, and implemented in 
+SpiderMonkey and Rhino).
+
+## David Bruant
+
+[_Tue Nov 13 02:27:35 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026314.html)
+
+The underlying question is how to choose which should be the fundamental 
+brick and which should be the library.
+Historically, the choice was made following this schema:
+* Some browser ships an feature with a given API
+* Other browsers are forced the implement the same thing because soon 
+enough, there is content relying on the given API.
+Depending on the feature, there is variable amount of discussion among 
+browsers and standard bodies before/between/after the 2 steps.
+We know where this had led people writing JS applications: they write 
+libraries to have other APIs. It wastes everyone's bandwidth (has a 
+study been done of how much bandwidth is used per day just by jQuery 
+downloads across the planet? It'd be fun to know) and has a runtime cost 
+as well.
+Since 2010-ish, JS devs fight back and improve APIs at the standard 
+level where there is a worthwhile opportunity (I'm thinking about DOM4's 
+Element.prototype.remove for instance).
+TC39 is also eager to have more and more feedback from developers before 
+freezing the spec.
+
+Now, JS devs (well... and academia and a lot of other actors) didn't 
+wait to find solutions to improve the async programming story. Promises 
+is one outcome. As Alex pointed out in his response, promises have been 
+adopted in a good share of JS client-side libraries and feel to have a 
+good support from the JS dev community, somehow proving that promises 
+are tha favored API to deal with async programming.
+
+I feel there is a small window of opportunity to get promises as a 
+standard features, so that's my motivation to talk about it.
+
 ## David Bruant
 
 [_Tue Nov 13 06:33:59 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026318.html)
+
+> But this involves the creation of an extra (unnecessary) node in the graph. And it's obtuse.  I still think the two-arg form makes the most sense as a base-level "then" API.
 
 I agree. But I feel it's possible for engines to optimize (both in time and memory) by detecting the .then(func).fail() (or the other way around) pattern. Also, assuming async programming is related to DB query/disk access/network I think these costs are negligible when compared with the time to wait for network or a user input or a timeout.
 
@@ -1692,153 +1748,88 @@ FWIW, I think "then" is better, because "when" sounds as if it should be passed 
 
 [_Tue Nov 13 06:21:13 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026317.html)
 
-Le 09/11/2012 17:33, Mark S. Miller a &#233;crit :
-> Hi David, thanks for your thoughtful post. I've always used the 
-> two-arg form of .then[1], but your post makes a strong case for more 
-> often using separate one-arg .then and .fail calls. I say only "more 
-> often" because the two arg form can easily make distinctions that the 
-> one-arg forms cannot
+09/11/2012 17:33, Mark S. Miller:
+
+>```javascript
+>var p2 = Q(p1).then(val => { throw foo(val); },
+>                    reason => { return bar(reason); });
+>```
 >
->     var p2 = Q(p1).then(val => { throw foo(val); },
-> reason => { return bar(reason); });
->
-> is different than either of the one-arg chainings. It'll be 
-> interesting to look over old code and see how often this difference 
-> matters. My guess is it usually doesn't, in which case your style 
-> should dominate.
+> is different than either of the one-arg chainings....
+
 Interesting example. Let's compare it with:
 
+```javascript
      var p2 = p1.then(val => { throw foo(val); })
-                        .fail(reason => { return bar(reason); });
+                .fail(reason => { return bar(reason); });
+```
 
-With this given order, the .fail catches the error in the .then callback.
-There is an information loss in the fact that in the fail callback, it 
-may not be clear whether the error came from p1 or the .then callback. 
-In my experience, it was never a worthwhile distinction (I just cared 
-about "an error happened somewhere"), so I guess the 80% case is covered.
+With this given order, the .fail catches the error in the .then callback. There is an information loss in the fact that in the fail callback, it may not be clear whether the error came from p1 or the .then callback. In my experience, it was never a worthwhile distinction (I just cared about "an error happened somewhere"), so I guess the 80% case is covered.
 
-In case it really matters, the value thrown in the .then could be made 
-distinguishable from expected thrown errors of p1 so that the callback 
-can compare and choose a different behavior for each case.
-Also, it's still possible to hook the .fail to p1 directly if necessary.
+In case it really matters, the value thrown in the .then could be made distinguishable from expected thrown errors of `p1` so that the callback can compare and choose a different behavior for each case. Also, it's still possible to hook the `.fail` to `p1` directly if necessary.
 
 I feel the one-arg version works fine. As you pointed out, there is a 
 minor information loss, but it's not that hard to work around in the 
 cases where it matters (I've seen you seem to agree, but I felt it was 
 important to do the analysis of the differences in both cases).
 
+### Terminology
 
-> [1] In my code and in my Q specs 
-> <http://wiki.ecmascript.org/doku.php?id=strawman:concurrency> and 
-> implementations 
-> <http://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/ses/makeQ.js>, 
-> I have been using "when" rather than "then". Because these are 
-> otherwise compatible AFAICT with A+, for the sake of consensus I'm 
-> willing to change this to "then" everywhere. But before I do, I'd like 
-> to make one last plea for "when" and see how this community responds.
->
-> The word "when" is clearly temporal, and suggests postponing something 
-> until some enabling condition. This seems perfect. The word "then" in 
-> programming is most closely associated with the concept of an "if then 
-> else", even though curly bracket languages never spell out the "then". 
-> When I look at your .then/.fail examples, the first thought that 
-> always pops into my head is "Shouldn't the opposite of .then be .else 
-> ?" Of course .fail is appropriate and .else is not. But isn't .then 
-> inappropriate for the same reason?
-I have to admit that I haven't paid close attention. For me, .then felt 
+I have to admit that I haven't paid close attention. For me, `.then` felt 
 relevant as a form of punctuation like semi-colons for the synchronous 
 style:
 
-     p.then(doThis)
-       .then(doThat)
-       .then(...)
+```javascript
+p.then(doThis)
+  .then(doThat)
+  .then(...)
 
-     // akin to
-     var p2 = doThis(p);
-     var p3 = doThat(p2);
-     ...
+// akin to
+var p2 = doThis(p);
+var p3 = doThat(p2);
+...
+```
 
-JavaScript is a bit special with semicolon, but in some other major 
-languages, a semi-colon is a language construct to separate 2 steps in 
-an algorithm and mean "do this then that".
-I used .then because of my experience with Q, but if "when" is more 
-accurate, I'll be fine with when.
+JavaScript is a bit special with semicolon, but in some other major languages, a semi-colon is a language construct to separate 2 steps in an algorithm and mean "do this then that". I used `.then` because of my experience with Q, but if "when" is more accurate, I'll be fine with when.
 
+>> The way I see promises, they have 3 states:
+>> unfulfilled/resolved/broken.
 >
-> On Fri, Nov 9, 2012 at 4:33 AM, David Bruant <bruant.d at gmail.com 
-> <mailto:bruant.d at gmail.com>> wrote:
->
->     [...]
->     ## Q.all
->     My favorite feature is the Q.all function. Q.all accepts an array
->     of promises and returns a promise which will be fulfilled when all
->     promises are. The resolution values are the different promises
->     resolution values:
->
->         var someData1P = query(q1);
->         var someData2P = query(q2);
->         var someData3P = fetch(url); // HTTP GET returning a promise
->
->         Q.all([someData1P, someData2P, someData3P])
->             .then(function(someData1, someData2, someData3){
->                 // do something when all data are back
->             })
->
->     I used this extensively and it's been extremely helpful.
->     Personally, to synchronize different async operations, I've never
->     read code more elegant than what Q.all offers. I'm interested in
->     hearing what other's experience is on that point.
->     Arguably, Q.all could take several arguments instead of accepting
->     only an array (that's one thing I'd change). Maybe there is a good
->     reason to enforce an array, but I don't know it.
->
->
-> I originally speced it to take varargs, but I was thinking in ES6 
+> Sigh. The fact that even you get confused on the terminology makes me 
+> think that no state should ever be named "un" anything. Let's stick 
+> with the A+ terminology: pending/fulfilled/rejected.
+
+Sounds good to me. I'll pull my "non-native English speaker" card here, 
+because I don't understand the difference between your terminology and 
+the one I chose.
+
+### Q.all
+
+> I originally speced `Q.all` to take varargs, but I was thinking in ES6 
 > terms where "..." is already supported. Kris Kowal points out that 
 > most usage of Q today, for obvious reasons, is pre-ES6. The var-args 
 > form means that a Q.all on a computed list would require usage of 
 > .apply, which is much uglier than the extra square brackets for the 
 > non-computed case.
+
 That makes a lot of sense.
 Assuming arrays and promises are unambiguously distinguishable, the 
 Q.all feature could be polymorphic and take either one array as argument 
 or a bunch or promises and have the expected behavior in each case.
 
->
->     # Promises and progress
->
->     Since I started talking about promises, I've had discussions with
->     people and one thing that came about a couple of times was the
->     idea of "progress" or how promises relate to streams.
->
->     The way I see promises, they have 3 states:
->     unfulfilled/resolved/broken.
->
->
-> Sigh. The fact that even you get confused on the terminology makes me 
-> think that no state should ever be named "un" anything. Let's stick 
-> with the A+ terminology: pending/fulfilled/rejected.
-Sounds good to me. I'll pull my "non-native English speaker" card here, 
-because I don't understand the difference between your terminology and 
-the one I chose.
-
 ## Leo Meyerovich
 
 [_Sun Nov 11 13:02:37 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026272.html)
 
-I've been lurking on this thread and am somewhat confused. Is the motivation for promises  a needed expressive primitive, updating the standard library to have asynchronous calls and structure them via promises,  sugar, or something else? I assume it's not to proscribe one particular style of coordination over another, which would have little empirical validation.
+I've been lurking on this thread and am somewhat confused. Is the motivation for promises a needed expressive primitive, updating the standard library to have asynchronous calls and structure them via promises, sugar, or something else? I assume it's not to proscribe one particular style of coordination over another, which would have little empirical validation.
 
--- If it's for asynchronous standard API, why shouldn't coordination be a user-level framework decision? E.g., have one callback for each async API (or two, succeed and fail), and leave the rest up to the coordination framework of the day? Simple API structure, like one of these patterns, will help framework writers make generic wrappers, but introducing more seems excessive. The main use case for APIs would be (AFAICT) to allow frameworks to introspect on whether an API call is async. Promises would enable inspecting the return value, but this seems awkward and maybe even late.
+If it's for asynchronous standard API, why shouldn't coordination be a user-level framework decision? E.g., have one callback for each async API (or two, succeed and fail), and leave the rest up to the coordination framework of the day? Simple API structure, like one of these patterns, will help framework writers make generic wrappers, but introducing more seems excessive. The main use case for APIs would be (AFAICT) to allow frameworks to introspect on whether an API call is async. Promises would enable inspecting the return value, but this seems awkward and maybe even late.
 
--- If the motivation is for language-level issues, I'm curious as to how this relates to topics like compiler optimization, multiprocessing, cross-frame communication, etc. Furthermore, are there any semantic concerns coming up (e.g., E style vats), or is the intent here purely sugar? (I assume blocking on a Liskov-style future will not be allowed).
+If the motivation is for language-level issues, I'm curious as to how this relates to topics like compiler optimization, multiprocessing, cross-frame communication, etc. Furthermore, are there any semantic concerns coming up (e.g., E style vats), or is the intent here purely sugar? (I assume blocking on a Liskov-style future will not be allowed).
 
--- For sugar, a lightweight lambda and, if still desired, macros, seem to eliminate much of the need of a primitive. 
+For sugar, a lightweight lambda and, if still desired, macros, seem to eliminate much of the need of a primitive. 
 
 Hopefully my confusion as to the motivation and design space here is clear :)
-
-Regards,
-
-- Leo
 
 ## Alex Russell
 
@@ -1846,39 +1837,10 @@ Regards,
 
 I *really* don't want to wade deep into these waters, but I'll respond a bit here to correct errors:
 
-On Nov 11, 2012, at 9:02 PM, Leo Meyerovich <lmeyerov at gmail.com> wrote:
-
-> I've been lurking on this thread and am somewhat confused. Is the motivation for promises  a needed expressive primitive, updating the standard library to have asynchronous calls and structure them via promises,  sugar, or something else? I assume it's not to proscribe one particular style of coordination over another, which would have little empirical validation.
-
 Putting things into a language or standard library in no way "proscribes" alternatives; it does however anoint one variant as "idiomatic". To the extent a built-in does that, it should be following practice. Now, perhaps you haven't been watching the mis-designs in DOM or the ubiquitous promise/future/deferred-like libraries that are now part of every major JS toolkit on the client side (still our major user). Or perhaps you think that doesn't hold a lot of water as the language can go its own way (a view I'm *obviously* sympathetic to). But either way, I think Promises have value in that they:
 
-   * were the basis for the underlying API we used to describe what happened when functions were de-sugared in the "await" proposal. They can do something similar for generators and, as someone who dislikes magic in general, I think we should do that work.
-   * the weight of library authors sending down their own versions of this stuff is MASSIVE and *should* inform what we do. Any other bias needs massive justification. So yes, we have tons of validation on this. Just look around.
-
-Regards
-
-> -- If it's for asynchronous standard API, why shouldn't coordination be a user-level framework decision? E.g., have one callback for each async API (or two, succeed and fail), and leave the rest up to the coordination framework of the day? Simple API structure, like one of these patterns, will help framework writers make generic wrappers, but introducing more seems excessive. The main use case for APIs would be (AFAICT) to allow frameworks to introspect on whether an API call is async. Promises would enable inspecting the return value, but this seems awkward and maybe even late.
-> 
-> -- If the motivation is for language-level issues, I'm curious as to how this relates to topics like compiler optimization, multiprocessing, cross-frame communication, etc. Furthermore, are there any semantic concerns coming up (e.g., E style vats), or is the intent here purely sugar? (I assume blocking on a Liskov-style future will not be allowed).
-> 
-> -- For sugar, a lightweight lambda and, if still desired, macros, seem to eliminate much of the need of a primitive. 
-> 
-> Hopefully my confusion as to the motivation and design space here is clear :)
-> 
-> Regards,
-> 
-> - Leo
-> 
-> _______________________________________________
-> es-discuss mailing list
-> es-discuss at mozilla.org
-> https://mail.mozilla.org/listinfo/es-discuss
-
---
-Alex Russell
-slightlyoff at google.com
-slightlyoff at chromium.org
-alex at dojotoolkit.org BE03 E88D EABB 2116 CC49 8259 CF78 E242 59C3 9723
+ * were the basis for the underlying API we used to describe what happened when functions were de-sugared in the "await" proposal. They can do something similar for generators and, as someone who dislikes magic in general, I think we should do that work.
+ * the weight of library authors sending down their own versions of this stuff is MASSIVE and *should* inform what we do. Any other bias needs massive justification. So yes, we have tons of validation on this. Just look around.
 
 ## Leo Meyerovich
 
@@ -1900,76 +1862,20 @@ This assumes, as based on your comment above, that promises are not a performanc
 
 Interestingly, a built-in may enable optimizations that a library cannot -- I'm curious as to the Node community's take. They've done some cool benchmarking, and I can see extending the promise API to be more data-centric leading to significant speedups. Despite my enthusiasm, I suspect the Node scenario merits more experimentation with high-performance implementations, not just libraries.
 
-- Leo
-
 ## Domenic Denicola
 
 [_Wed Nov 14 08:25:48 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026345.html)
 
-Why go purposefully against the existing terminology of the JavaScript ecosystem? Just say &#8220;deferred&#8221; where you have &#8220;promise&#8221; and &#8220;promise&#8221; where you have &#8220;future&#8221; and you avoid needless confusion and conflict.
+Kevin Smith:
+> I think it's important to separate "Promise" from "Future".
 
-This isn&#8217;t Scala; we have existing terminology for exactly these concepts. Just use it.
+Why go purposefully against the existing terminology of the JavaScript ecosystem? Just say "deferred" where you have "promise" and "promise" where you have "future" and you avoid needless confusion and conflict.
 
-From: Kevin Smith
-Sent: &#8206;November&#8206; &#8206;14&#8206;, &#8206;2012 &#8206;11&#8206;:&#8206;23
-To: David Bruant
-CC: Mark S. Miller, EcmaScript
-Subject: Re: Promises
-
-
-If the second argument is optional, it's possible to have both one-arg and two-arg styles in the same API.
-What do people think about this idea?
-
-Maybe - minimalism served the class proposal quite well.  It might be a good strategy here, too.
-
-Here's what I'm thinking:
-
-    // Creates a new promise
-    let promise = new Promise();
-
-    // Resolves the promise (ala Q)
-    promise.resolve(value);
-
-    // Rejects the promise (ala Q)
-    promise.reject(value);
-
-    // A handle to the eventual value of the promise
-    promise.future;
-
-    // The then method (ala Promises/A+)
-    promise.future.then(val => {
-
-        // Success handler
-
-    }, err => {
-
-        // Error handler
-    });
-
-    // Returns a future for the value
-    Promise.when(value);
-
-    // Returns a rejected future with the specified error
-    Promise.reject(error);
-
-    // Returns a future for every eventual value in the list
-    Promise.whenAll(list);
-
-    // Returns a future for the first resolved future in the list
-    Promise.whenAny(list);
-
-Initial implementation here: https://github.com/jscloud/Promise
-
-I think it's important to separate "Promise" from "Future".  Back in the CommonJS mailing list days, there was contention between Promises/A (thenables) and Promises/B (basically Q).  But they really are complementary:  futures and promises.
+This isn't Scala; we have existing terminology for exactly these concepts. Just use it.
 
 ## Kevin Smith
 
 [_Wed Nov 14 08:41:52 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026346.html)
-
->  Why go purposefully against the existing terminology of the JavaScript
-> ecosystem? Just say &#8220;deferred&#8221; where you have &#8220;promise&#8221; and &#8220;promise&#8221; where
-> you have &#8220;future&#8221; and you avoid needless confusion and conflict.
->
 
 I prefer to find the optimal solution first and then consider migration
 costs later.  I think migration costs are in general overstated in these
@@ -1981,21 +1887,11 @@ Plus, "Deferred", seriously?  It's not even a noun.   : )
 
 [_Wed Nov 14 08:44:15 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026347.html)
 
-From: Kevin Smith [khs4473 at gmail.com]
-Sent: Wednesday, November 14, 2012 11:41
-
->> Why go purposefully against the existing terminology of the JavaScript ecosystem? Just say &#8220;deferred&#8221; where you have &#8220;promise&#8221; and &#8220;promise&#8221; where you have &#8220;future&#8221; and you avoid needless confusion and conflict.
-
-> I prefer to find the optimal solution first and then consider migration costs later.
-
 I think you meant "optimally colored bikeshed," but OK.
 
 ## Kevin Smith
 
 [_Wed Nov 14 09:25:13 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026352.html)
-
-> I think you meant "optimally colored bikeshed," but OK.
->
 
 Ouch : )
 
@@ -2006,27 +1902,16 @@ confusing as promises and futures.
 
 [_Wed Nov 14 09:41:28 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026354.html)
 
-On Wed, Nov 14, 2012 at 9:25 AM, Kevin Smith <khs4473 at gmail.com> wrote:
-
->
-> I think you meant "optimally colored bikeshed," but OK.
->>
->
-> Ouch : )
->
-> Names are important.  Especially when it comes to something as potentially
-> confusing as promises and futures.
->
-
 I agree that names are important.
-1) First choice would be to use existing words, where their existing
+
+1. First choice would be to use existing words, where their existing
 meanings (whether nat-lang or prior technical use) clearly suggests their
 intended technical meaning.
-2) Second choice would be to use words whose existing meanings do not
+2. Second choice would be to use words whose existing meanings do not
 conflict with their intended technical meaning, and where programmers do
 not mistakenly assume they know the wrong meaning.
-3) Like #2, but coining new words if needed.
-4...) anything else is too likely to cause confusion.
+3. Like #2, but coining new words if needed.
+4. ...anything else is too likely to cause confusion.
 
 In doing the E non-blocking promises, I looked at the history of usage of
 the terms "promise" and "future". Several people had tried to use both
@@ -2036,7 +1921,7 @@ were used by someone on each side of the distinction. However, both were
 used primarily for the abstraction of designating a yet-to-be-determined
 value.
 
-Historically, the primary examples I can think of[1] of an abstraction that
+Historically, the primary examples I can think of [1] of an abstraction that
 bundles both the delayed designation and the ability to determine what is
 designated is the logic variable (especially in concurrent logic languages)
 and the Python Deferred, which inspired various JS Defferds. If you
@@ -2053,18 +1938,11 @@ manner, so I'd classify it as #4. Let's not repeat Scala's mistake.
 
 [_Wed Nov 14 09:57:58 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026356.html)
 
-On 14 November 2012 18:41, Mark S. Miller <erights at google.com> wrote:
-> Either way, Scala's
-> unfortunate choice clearly violates this history in a confusing manner, so
-> I'd classify it as #4. Let's not repeat Scala's mistake.
-
 Just to reiterate, it's not just Scala, but more importantly also C++,
 Java (to some extent), and several less mainstream languages. That is,
 this use of terminology has quite a bit of history of its own, dating
 back almost as far as E (and having developed more or less
 independently).
-
-/Andreas
 
 ## Kevin Smith
 
@@ -2089,21 +1967,6 @@ particular (and more fully featured) promise spec.
 
 [_Wed Nov 14 11:37:33 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026360.html)
 
-2012/11/14 Andreas Rossberg <rossberg at google.com>
-
-> On 14 November 2012 18:41, Mark S. Miller <erights at google.com> wrote:
-> > Either way, Scala's
-> > unfortunate choice clearly violates this history in a confusing manner,
-> so
-> > I'd classify it as #4. Let's not repeat Scala's mistake.
->
-> Just to reiterate, it's not just Scala, but more importantly also C++,
-> Java (to some extent), and several less mainstream languages. That is,
-> this use of terminology has quite a bit of history of its own, dating
-> back almost as far as E (and having developed more or less
-> independently).
-
-
 I still think futures connote strongly with blocking synchronization. If
 we'd add a concept named "future" to JS on the grounds that the same
 concept exists in Java and C++, developers will reasonably expect a
@@ -2118,50 +1981,16 @@ promises. Argh! :-)
 
 [_Wed Nov 14 12:11:00 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026362.html)
 
-On Wed, Nov 14, 2012 at 11:37 AM, Tom Van Cutsem <tomvc.be at gmail.com> wrote:
-
-> 2012/11/14 Andreas Rossberg <rossberg at google.com>
->
->> On 14 November 2012 18:41, Mark S. Miller <erights at google.com> wrote:
->> > Either way, Scala's
->> > unfortunate choice clearly violates this history in a confusing manner,
->> so
->> > I'd classify it as #4. Let's not repeat Scala's mistake.
->>
->> Just to reiterate, it's not just Scala, but more importantly also C++,
->> Java (to some extent), and several less mainstream languages. That is,
->> this use of terminology has quite a bit of history of its own, dating
->> back almost as far as E (and having developed more or less
->> independently).
->
->
-> I still think futures connote strongly with blocking synchronization. If
-> we'd add a concept named "future" to JS on the grounds that the same
-> concept exists in Java and C++, developers will reasonably expect a
-> blocking future.get() method.
->
-> In my experience, the term "promise" is much more associated with
-> non-blocking synchronization through .then or .when callback chaining
-> (although ironically the name derives from Argus, which featured blocking
-> promises. Argh! :-)
->
-
-OTOH, the Argus promises were where promise pipelining <
-http://en.wikipedia.org/wiki/Futures_and_promises#Promise_pipelining> was
-invented, and this is a key feature of our distributed promises via
-.send/.post. In this way, the Argus promises are the closest to ours.
+OTOH, the Argus promises were where [promise pipelining](http://en.wikipedia.org/wiki/Futures_and_promises#Promise_pipelining) was invented, and this is a key feature of our distributed promises via `.send`/`.post`. In this way, the Argus promises are the closest to ours.
 
 ## Rick Waldron
 
 [_Wed Nov 14 09:28:29 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026353.html)
 
-On Wed, Nov 14, 2012 at 11:25 AM, Domenic Denicola <
-domenic at domenicdenicola.com> wrote:
+On Wed, Nov 14, 2012 at 11:25 AM, Domenic Denicola wrote:
 
 >  Why go purposefully against the existing terminology of the JavaScript
-> ecosystem? Just say &#8220;deferred&#8221; where you have &#8220;promise&#8221; and &#8220;promise&#8221; where
-> you have &#8220;future&#8221; and you avoid needless confusion and conflict.
->
+> ecosystem?
 
 It's true that the terminology exists in JS, but it's been identified that
 these terms may have been misappropriated. Kevin's proposal is easier to
@@ -2179,9 +2008,8 @@ which matches the latter.
 
 
 
-> This isn&#8217;t Scala; we have existing terminology for exactly these concepts.
+> This isn't Scala; we have existing terminology for exactly these concepts.
 > Just use it.
->
 
 I'd be interested in seeing usership data for libraries using this existing
 terminology.
@@ -2190,31 +2018,14 @@ terminology.
 
 [_Wed Nov 14 09:48:22 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026355.html)
 
-On Wed, Nov 14, 2012 at 9:28 AM, Rick Waldron <waldron.rick at gmail.com>wrote:
-
->
->
->
-> On Wed, Nov 14, 2012 at 11:25 AM, Domenic Denicola <
-> domenic at domenicdenicola.com> wrote:
->
->>  Why go purposefully against the existing terminology of the JavaScript
->> ecosystem? Just say &#8220;deferred&#8221; where you have &#8220;promise&#8221; and &#8220;promise&#8221; where
->> you have &#8220;future&#8221; and you avoid needless confusion and conflict.
->>
->
 > It's true that the terminology exists in JS, but it's been identified that
 > these terms may have been misappropriated.
->
 
 "misappropriated"? What do you mean?
-
-
 
 > Kevin's proposal is easier to reason about:
 >
 > "Promise to deliver a value in the Future"
->
 
 This would make "promise" a verb, which is clearly its dominant nat-lang
 use. However, I don't see how that justifies using it as the name for the
@@ -2230,54 +2041,10 @@ resolve the promise is clearly distinct from having the promise.
 
 [_Wed Nov 14 10:13:35 PST 2012_](https://mail.mozilla.org/pipermail/es-discuss/2012-November/026357.html)
 
-On Wed, Nov 14, 2012 at 12:48 PM, Mark S. Miller <erights at google.com> wrote:
 
->
->
->
-> On Wed, Nov 14, 2012 at 9:28 AM, Rick Waldron <waldron.rick at gmail.com>wrote:
->
->>
->>
->>
->> On Wed, Nov 14, 2012 at 11:25 AM, Domenic Denicola <
->> domenic at domenicdenicola.com> wrote:
->>
->>>  Why go purposefully against the existing terminology of the JavaScript
->>> ecosystem? Just say &#8220;deferred&#8221; where you have &#8220;promise&#8221; and &#8220;promise&#8221; where
->>> you have &#8220;future&#8221; and you avoid needless confusion and conflict.
->>>
->>
->> It's true that the terminology exists in JS, but it's been identified
->> that these terms may have been misappropriated.
->>
->
 > "misappropriated"? What do you mean?
->
 
-I was referring to the varied use of terminology illustrated in Kevin's
-spreadsheet:
-https://docs.google.com/document/d/10OeEwqEuEPyDVRU9VXemxi3kc7ba_pugxHLD2BSrG_k/edit
-
-
->
->
->
->>  Kevin's proposal is easier to reason about:
->>
->> "Promise to deliver a value in the Future"
->>
->
-> This would make "promise" a verb, which is clearly its dominant nat-lang
-> use. However, I don't see how that justifies using it as the name for the
-> Deferred abstraction. "in the Future" uses future to name the time when the
-> value will be delivered. I don't see how this suggests anything appropriate
-> either.
->
-> For "Promise" as a noun, if I have a promise from you, I do not have the
-> ability to resolve the promise -- that ability is your's. So the ability of
-> resolve the promise is clearly distinct from having the promise.
->
+I was referring to the varied use of terminology illustrated in [Kevin's spreadsheet](https://docs.google.com/document/d/10OeEwqEuEPyDVRU9VXemxi3kc7ba_pugxHLD2BSrG_k/edit)
 
 Originally I had worded the phrase something like "Make a Promise...";
 regardless, this perspective clearly (and correctly) illustrates the
