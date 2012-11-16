@@ -13,6 +13,11 @@ Note that this will over-write any existing changes, so if you want to extend an
 
 Once you have done that, you'll have a big markdown file.  You'll then need to manually go through and edit/format the markdown so links are properly referenced, code samples get syntax highlighted as JavaScript, and people don't include complete copies of previous messages.
 
-Submit a pull request so everyone can see your great work.
+You can preview your markdown file by doing:
+
+    $ npm install greadme
+    $ greadme
+
+Don't forget to submit a pull request so everyone can see your great work.
 
 Wherever possible I will aim to maintain the meaning of what was said, but I may change formatting, and remove duplicated content (such as quoting the entirety of the previous message).  If you feel one of the documents mis-represents what you originally said, submit a pull request to correct the statements.
